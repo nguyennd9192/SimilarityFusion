@@ -3,7 +3,7 @@
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
-
+from general_lib import *
 
 #--------------------------------------------------
 #NDD Methods
@@ -43,7 +43,7 @@ def preprocess_labels(labels, encoder=None, categorical=True):
         print(y)
     return y, encoder
 
-    
+
 #------------------------------------------------------
 def preprocess_names(labels, encoder=None, categorical=True):
     if not encoder:

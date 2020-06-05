@@ -37,28 +37,36 @@ def get_s_metric():
 		sim_df.to_csv(saveat)
 		print (metric)
 
-def smetric_to_snf():
-	metrics = ["euclidean", "l1", "l2", "cosine", "braycurtis"]
+def smetric_to_snf(): 
+	metrics = ["euclidean", "l1", "l2",  "correlation"] #   "cosine", "braycurtis"
 	Wall = []
 	for metric in metrics:
 		s_metric_file = input_dir + "/Tc/normal_s_metric/" + metric + ".csv" 
 		df = pd.read_csv(s_metric_file, index_col=0)
 		Wall.append(df.values)
 
-	W = SNF(Wall=Wall, K=20, t=10 ,ALPHA=1)
-	print (W)
-	print (W.shape)
+	W1 = SNF(Wall=Wall[2:], K=20, t=10 ,ALPHA=1)
+	print ("W1:", W1)
 
 
-	
+	W2 = SNF(Wall=Wall[:2], K=20, t=10 ,ALPHA=1)
+
+	print ("W2:", W2)
+
+	print ("diff", sum(np.abs(W1 - W2)))
+	print (W2.shape)
+
+
+
 
 def main():
 	# # drug_drug_matrix.csv # # to save interaction index
 	index_files = ["drug_pathway_index.txt", "drug_SideEffect_index.txt", "drug_target_index.txt",
 			"drug_transporter_index.txt", "drug_enzyme_index.txt", "drug_list.txt", "drug_offSideEffect_index.txt"]
 	DS1_sim_files = [ 
-		"DS1/chem_Jacarrd_sim.csv", "DS1/pathway_Jacarrd_sim.csv", "DS1/sideeffect_Jacarrd_sim.csv",
-		"DS1/target_Jacarrd_sim.csv", "DS1/enzyme_Jacarrd_sim.csv", " DS1/transporter_Jacarrd_sim.csv",
+		# "DS1/chem_Jacarrd_sim.csv", "DS1/pathway_Jacarrd_sim.csv", "DS1/sideeffect_Jacarrd_sim.csv",
+		# "DS1/target_Jacarrd_sim.csv", "DS1/enzyme_Jacarrd_sim.csv", 
+		"DS1/transporter_Jacarrd_sim.csv",
 		"DS1/indication_Jacarrd_sim.csv", "DS1/offsideeffect_Jacarrd_sim.csv"
 		]
 	DS2_sim_files = ["DS2/simMatrix.csv", "DS2/ddiMatrix.csv"]
@@ -77,13 +85,13 @@ def main():
 
 
 if __name__ == "__main__":
-	# main()
+	main()
 
 	# # convert representation to distance matrix
 	# get_s_metric()
 
 	# # fusion multiple similarity matrix by snf
-	smetric_to_snf()
+	# smetric_to_snf()
 
 
 
