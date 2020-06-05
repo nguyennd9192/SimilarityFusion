@@ -9,7 +9,7 @@ NDD: A neural network for predicting DDIs.
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from sklearn import svm, grid_search
+# from sklearn import svm, grid_search
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
@@ -23,9 +23,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from keras.layers.merge import concatenate
-from sklearn.cross_validation import train_test_split
+# from sklearn.cross_validation import train_test_split
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.cross_validation import StratifiedKFold
+# from sklearn.cross_validation import StratifiedKFold
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import precision_recall_curve
@@ -33,10 +33,10 @@ import gzip
 import pandas as pd
 import pdb
 import random
-from deap import algorithms
-from deap import base
-from deap import creator
-from deap import tools
+# from deap import algorithms
+# from deap import base
+# from deap import creator
+# from deap import tools
 from keras import optimizers
 from random import randint
 import scipy.io
@@ -188,7 +188,7 @@ def SNF(Wall,K,t,ALPHA=1):
 
     # # Wall: multiple similarity matrix
     # # K: K neighbors 
-    
+
 	C = len(Wall)
 	m,n = Wall[0].shape
 
@@ -248,32 +248,33 @@ def read_Sim_Calc_Entropy(fname,cutoff):
         max_entropy = float(math.log(row,2))
 
         for i in range(row):
-                for j in range(col):
-                        if arr[i][j]<cutoff:
-                                arr[i][j]=0
+            for j in range(col):
+                    if arr[i][j]<cutoff:
+                            arr[i][j]=0
         
         for i in range(len(arr)):
-                row_sum =arr[i].sum() 
-                row_entropy=0
+            row_sum =arr[i].sum() 
+            row_entropy=0
 
-                if row_sum == 0:
-                        entropy.append(0)
-                        
-                if row_sum > 0:
-                        aIndices_nonZero.append(i)
-                        arr[i] +=small_number 
-                        row_sum = arr[i].sum()
+            if row_sum == 0:
+                entropy.append(0)
+                    
+            if row_sum > 0:
+                aIndices_nonZero.append(i)
+                arr[i] +=small_number 
+                row_sum = arr[i].sum()
+                
         for j in range(len(arr[i])):
-                                v= arr[i][j]
-                                cell_edited = (v)/row_sum
-                                #print 'cell_edited',cell_edited
-                                row_entropy= row_entropy+(cell_edited * math.log(cell_edited,2))
-                                 #print 'row_entropy',row_entropy
-                                row_entropy =row_entropy*-1
-                                entropy.append(row_entropy)
+            v= arr[i][j]
+            cell_edited = (v)/row_sum
+            #print 'cell_edited',cell_edited
+            row_entropy= row_entropy+(cell_edited * math.log(cell_edited,2))
+             #print 'row_entropy',row_entropy
+            row_entropy =row_entropy*-1
+            entropy.append(row_entropy)
 
         for x in aIndices_nonZero:            
-                entropy_exclude_zero_sumRow.append(entropy[x])
+            entropy_exclude_zero_sumRow.append(entropy[x])
         
         return np.mean(entropy),np.mean(entropy_exclude_zero_sumRow),round(max_entropy,2)
 #---------------------------------------------------------------------------------------------------

@@ -45,8 +45,9 @@ def smetric_to_snf():
 		df = pd.read_csv(s_metric_file, index_col=0)
 		Wall.append(df.values)
 
-	W = SNF(Wall=Wall, K=10, t=10 ,ALPHA=1)
-
+	W = SNF(Wall=Wall, K=20, t=10 ,ALPHA=1)
+	print (W)
+	print (W.shape)
 
 def main():
 	# # drug_drug_matrix.csv # # to save interaction index
@@ -75,7 +76,11 @@ def main():
 if __name__ == "__main__":
 	# main()
 
-	get_s_metric()
+	# # convert representation to distance matrix
+	# get_s_metric()
+
+	# # fusion multiple similarity matrix by snf
+	smetric_to_snf()
 
 
 
