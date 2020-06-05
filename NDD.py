@@ -236,76 +236,76 @@ def SNF(Wall,K,t,ALPHA=1):
 #-----------------------------
     #Similarity Selection
 def read_Sim_Calc_Entropy(fname,cutoff):
-        entropy_exclude_zero_sumRow=[]
-        max_entropy=0.0
-        cutoff=float(cutoff)
-        entropy=[]
-        small_number= 1*pow(10,-16)
-        arr = np.loadtxt(fname, delimiter=',')
-        np.fill_diagonal(arr,0)
-        row,col = arr.shape
-        aIndices_nonZero=[]
-        max_entropy = float(math.log(row,2))
+    entropy_exclude_zero_sumRow=[]
+    max_entropy=0.0
+    cutoff=float(cutoff)
+    entropy=[]
+    small_number= 1*pow(10,-16)
+    arr = np.loadtxt(fname, delimiter=',')
+    np.fill_diagonal(arr,0)
+    row,col = arr.shape
+    aIndices_nonZero=[]
+    max_entropy = float(math.log(row,2))
 
-        for i in range(row):
-            for j in range(col):
-                    if arr[i][j]<cutoff:
-                            arr[i][j]=0
-        
-        for i in range(len(arr)):
-            row_sum =arr[i].sum() 
-            row_entropy=0
+    for i in range(row):
+        for j in range(col):
+                if arr[i][j]<cutoff:
+                        arr[i][j]=0
+    
+    for i in range(len(arr)):
+        row_sum =arr[i].sum() 
+        row_entropy=0
 
-            if row_sum == 0:
-                entropy.append(0)
-                    
-            if row_sum > 0:
-                aIndices_nonZero.append(i)
-                arr[i] +=small_number 
-                row_sum = arr[i].sum()
+        if row_sum == 0:
+            entropy.append(0)
                 
-        for j in range(len(arr[i])):
-            v= arr[i][j]
-            cell_edited = (v)/row_sum
-            #print 'cell_edited',cell_edited
-            row_entropy= row_entropy+(cell_edited * math.log(cell_edited,2))
-             #print 'row_entropy',row_entropy
-            row_entropy =row_entropy*-1
-            entropy.append(row_entropy)
+        if row_sum > 0:
+            aIndices_nonZero.append(i)
+            arr[i] +=small_number 
+            row_sum = arr[i].sum()
+            
+    for j in range(len(arr[i])):
+        v= arr[i][j]
+        cell_edited = (v)/row_sum
+        #print 'cell_edited',cell_edited
+        row_entropy= row_entropy+(cell_edited * math.log(cell_edited,2))
+         #print 'row_entropy',row_entropy
+        row_entropy =row_entropy*-1
+        entropy.append(row_entropy)
 
-        for x in aIndices_nonZero:            
-            entropy_exclude_zero_sumRow.append(entropy[x])
-        
-        return np.mean(entropy),np.mean(entropy_exclude_zero_sumRow),round(max_entropy,2)
+    for x in aIndices_nonZero:            
+        entropy_exclude_zero_sumRow.append(entropy[x])
+    
+    return np.mean(entropy),np.mean(entropy_exclude_zero_sumRow),round(max_entropy,2)
 #---------------------------------------------------------------------------------------------------
 def removeRedundancy(ranked_entropy_simType,all_euclideanDist_Sim):
-        flT = 0.6
-        m = 0
-        iMEnd = len(ranked_entropy_simType)
-        while m < iMEnd:
-                A_simType = ranked_entropy_simType[m]
-                n = m+1
-                iNEnd = len(ranked_entropy_simType)
-                while n < iNEnd:
-                        B_simType = ranked_entropy_simType[n]
+    flT = 0.6
+    m = 0
+    iMEnd = len(ranked_entropy_simType)
+    while m < iMEnd:
+            A_simType = ranked_entropy_simType[m]
+            n = m+1
+            iNEnd = len(ranked_entropy_simType)
+            while n < iNEnd:
+                    B_simType = ranked_entropy_simType[n]
 
-                        if A_simType+','+B_simType in all_euclideanDist_Sim:
-                                key=A_simType+','+B_simType
-                        if B_simType+','+A_simType in all_euclideanDist_Sim:
-                                key=B_simType+','+A_simType
+                    if A_simType+','+B_simType in all_euclideanDist_Sim:
+                            key=A_simType+','+B_simType
+                    if B_simType+','+A_simType in all_euclideanDist_Sim:
+                            key=B_simType+','+A_simType
 
-                        flMax = all_euclideanDist_Sim[key]
-                        if flMax > flT:
-                                #oMC.deleteMotif(sMotB)
-                                del ranked_entropy_simType[n]
-                        else:
-                                n += 1
-                        iNEnd = len(ranked_entropy_simType)
-                m += 1
-                iMEnd = len(ranked_entropy_simType)
-        print('ranked_entropy_simType', ranked_entropy_simType)
+                    flMax = all_euclideanDist_Sim[key]
+                    if flMax > flT:
+                            #oMC.deleteMotif(sMotB)
+                            del ranked_entropy_simType[n]
+                    else:
+                            n += 1
+                    iNEnd = len(ranked_entropy_simType)
+            m += 1
+            iMEnd = len(ranked_entropy_simType)
+    print('ranked_entropy_simType', ranked_entropy_simType)
 
-        return ranked_entropy_simType
+    return ranked_entropy_simType
 #--------------------------------------------------------------------------------
 
 

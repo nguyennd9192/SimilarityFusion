@@ -49,6 +49,9 @@ def smetric_to_snf():
 	print (W)
 	print (W.shape)
 
+
+	
+
 def main():
 	# # drug_drug_matrix.csv # # to save interaction index
 	index_files = ["drug_pathway_index.txt", "drug_SideEffect_index.txt", "drug_target_index.txt",

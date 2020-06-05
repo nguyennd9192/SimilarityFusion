@@ -44,6 +44,20 @@ def NDD(input_dim):
     model.compile(loss='binary_crossentropy', optimizer=sgd)                  
     return model
 
+#------------------------------------------------------
+def NDD_regressor(input_dim): 
+    model = Sequential()
+    model.add(Dense(input_dim=input_dim, output_dim=400,init='glorot_normal'))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(input_dim=400, output_dim=300,init='glorot_normal'))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.5))
+    
+    sgd = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(loss='binary_crossentropy', optimizer=sgd)                  
+    return model
+
 #---------------------------------------------------------------------------------------------------
 def DeepMDA(sim_file):
 
@@ -133,6 +147,68 @@ def DeepMDA(sim_file):
     print ("Results: ", clf_results)
 
 
+
+def DeepMDA_regressor(X, y):
+    from kr_parameter_search import CV_predict_score
+    X_data1, X_data2 = transfer_array_format(X) 
+ 
+    X = np.concatenate((X_data1, X_data2), axis=1)
+
+    num_cross_val = 10
+
+   
+    # CV_predict_score(model, X, y, n_folds=3, n_times=3, score_type='r2')
+
+
+    for fold in range(num_cross_val):
+        y_train = np.array([x for i, x in enumerate(y) if i % num_cross_val != fold])
+        y_test = np.array([x for i, x in enumerate(y) if i % num_cross_val == fold])
+        train1 = np.array([x for i, x in enumerate(X_data1) if i % num_cross_val != fold])
+        test1 = np.array([x for i, x in enumerate(X_data1) if i % num_cross_val == fold])
+        train2 = np.array([x for i, x in enumerate(X_data2) if i % num_cross_val != fold])
+        test2 = np.array([x for i, x in enumerate(X_data2) if i % num_cross_val == fold])
+     
+
+
+       
+        prefilter_train = np.concatenate((train1, train2), axis = 1)
+        prefilter_test = np.concatenate((test1, test2), axis = 1)
+        
+
+        n_train = int(prefilter_train.shape[0])
+        # prefilter_train = prefilter_train[:n_train, ]
+        print ("train dimensions:", prefilter_train.shape)
+        print ("test dimensions:", prefilter_test.shape)
+
+        model_DNN = NDD(input_dim=prefilter_train.shape[1])
+
+        # # chỉ để label ở cột thứ 2 x[:, 1]
+
+        model_DNN.fit(prefilter_train[:n_train, ], y_train,
+            batch_size=100,epochs=20,shuffle=True,validation_split=0)
+        proba = model_DNN.predict_classes(prefilter_test,batch_size=200,verbose=True)
+        ae_y_pred_prob = model_DNN.predict_proba(prefilter_test,batch_size=200,verbose=True)
+
+        print (proba)
+        print (ae_y_pred_prob)
+
+        acc, precision, sensitivity, specificity, MCC = calculate_performace(len(real_labels), proba,  real_labels)
+        fpr, tpr, auc_thresholds = roc_curve(real_labels, ae_y_pred_prob[:,1])
+        auc_score = auc(fpr, tpr)
+
+        precision1, recall, pr_threshods = precision_recall_curve(real_labels, ae_y_pred_prob[:,1])
+        aupr_score = auc(recall, precision1)
+        #f = f1_score(real_labels, transfer_label_from_prob(ae_y_pred_prob[:,1]))
+        all_F_measure=np.zeros(len(pr_threshods))
+        clf_results.append(dict({"sim_file":sim_file, "folds":"fold_{0}".format(fold), 
+            "acc":acc, "precision":precision, 
+            "sensitivity":sensitivity, "specificity":specificity, "MCC":MCC}))
+
+        df = pd.DataFrame(clf_results)
+        saveat = "{0}/{1}_results.csv".format(result_dir, get_basename(sim_file).replace(".csv", ""))
+        makedirs(saveat)
+        df.to_csv(saveat)
+    print ("Results: ", clf_results)
 
 
 
