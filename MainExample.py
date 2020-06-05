@@ -9,7 +9,6 @@ import matplotlib
 matplotlib.use('agg')
 import matplotlib 
 from keras.layers.core import Dropout, Activation
-from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import precision_recall_curve
 from keras import optimizers
@@ -17,81 +16,10 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.utils import np_utils
 
-import os, ntpath
-import pandas as pd
-input_dir = "/Users/nguyennguyenduong/Dropbox/My_code/SimilarityFusion/NDD"
-result_dir = "/Users/nguyennguyenduong/Dropbox/My_code/SimilarityFusion/result"
-
-
-def makedirs(file):
-    if not os.path.isdir(os.path.dirname(file)):
-        os.makedirs(os.path.dirname(file))
-
-def get_basename(filename):
-
-    head, tail = ntpath.split(filename)
-
-    basename = os.path.splitext(tail)[0]
-    return tail
-#--------------------------------------------------
-#NDD Methods
-def prepare_data(sim_file, seperate=False):
-
-    drug_fea = np.loadtxt(sim_file, dtype=float, delimiter=",")
-    interaction = np.loadtxt("{0}/DS1/drug_drug_matrix.csv".format(input_dir),dtype=int,delimiter=",") # drug_drug_matrix
-    train = []
-    label = [] # # label means drugX interact with drugY or not, stored only in "drug_drug_matrix"
-    tmp_fea=[]
-    drug_fea_tmp = []
-
-    # # to produce X_data1, X_data2 in training, testing
-    for i in range(0, interaction.shape[0]):
-        for j in range(0, interaction.shape[1]):
-            label.append(interaction[i,j])
-            drug_fea_tmp = list(drug_fea[i])
-            if seperate:
-        
-                 tmp_fea = (drug_fea_tmp, drug_fea_tmp)
-
-            else:
-                 tmp_fea = drug_fea_tmp + drug_fea_tmp
-            train.append(tmp_fea)
-
-    return np.array(train), label
-#--------------------------------------------------------------
-def calculate_performace(test_num, pred_y,  labels):
-    tp =0
-    fp = 0
-    tn = 0
-    fn = 0
-    for index in range(test_num):
-        if labels[index] ==1:
-            if labels[index] == pred_y[index]:
-                tp = tp +1
-            else:
-                fn = fn + 1
-        else:
-            if labels[index] == pred_y[index]:
-                tn = tn +1
-            else:
-                fp = fp + 1 
-    acc = float(tp + tn)/test_num
-    if tp == 0 and fp == 0:
-        precision = 0
-        MCC = 0
-        sensitivity = float(tp)/ (tp+fn)
-        specificity = float(tn)/(tn + fp)
-    else:
-        precision = float(tp)/(tp+ fp)
-        sensitivity = float(tp)/ (tp+fn)
-        specificity = float(tn)/(tn + fp)
-
-        try:
-            MCC = float(tp*tn-fp*fn)/(np.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn)))
-        except Exception as e:
-            MCC = None
-            pass
-    return acc, precision, sensitivity, specificity, MCC 
+import pandas as pd 
+from general_lib import *
+from load_data import prepare_data, preprocess_names, preprocess_labels
+from evaluation import calculate_performace
 #-----------------------------------------------------
 def transfer_array_format(data):
     formated_matrix1 = []
@@ -100,24 +28,7 @@ def transfer_array_format(data):
         formated_matrix1.append(val[0])
         formated_matrix2.append(val[1])
     return np.array(formated_matrix1), np.array(formated_matrix2)
-#-------------------------------------------------------
-def preprocess_labels(labels, encoder=None, categorical=True):
-    if not encoder:
-        encoder = LabelEncoder()
-        encoder.fit(labels)
-        y = encoder.transform(labels).astype(np.int32)
-    if categorical:
-        y = np_utils.to_categorical(y)
-        print(y)
-    return y, encoder
-#------------------------------------------------------
-def preprocess_names(labels, encoder=None, categorical=True):
-    if not encoder:
-        encoder = LabelEncoder()
-        encoder.fit(labels)
-    if categorical:
-        labels = np_utils.to_categorical(labels)
-    return labels, encoder
+
 #------------------------------------------------------
 def NDD(input_dim): 
     model = Sequential()
@@ -132,7 +43,6 @@ def NDD(input_dim):
     sgd = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(loss='binary_crossentropy', optimizer=sgd)                  
     return model
-#--------------------------------------------------
 
 #---------------------------------------------------------------------------------------------------
 def DeepMDA(sim_file):

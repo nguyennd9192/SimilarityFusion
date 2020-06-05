@@ -1,12 +1,44 @@
 
-input_dir = "/Users/nguyennguyenduong/Dropbox/My_code/SimilarityFusion/NDD"
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
 
 
+from general_lib import *
 from MainExample import DeepMDA
+from distance_metric import get_dmetric
+from NDD import SNF
 
+def get_s_metric():
+	fname = input_dir + "/Tc/TC_data_101_max.csv"
+	df = pd.read_csv(fname, index_col=0)
+	pv = ["Z_R", "Z_T", "C_R"]
+	tv = "Tc"
 
-def main2():
-	
+	X = df[pv].values
+	y = df[tv].values
+	index = df.index
+	num_indices = range(len(y))
+	test_size = 0.3
+
+	X = get_Xnorm(X_matrix=X)
+	# X_train, X_test, y_train, y_test, indices_train, indices_test = train_test_split(X, y, num_indices,
+	# 				test_size=test_size, random_state=0)
+
+	metrics = ["euclidean", "l1", "l2", "cosine", "braycurtis", "canberra", 
+				"correlation", "jaccard", "hamming", "dice"]
+	for metric in metrics:
+		d_metric = get_dmetric(X, metric=metric)
+		s_metric = 1 - d_metric 
+
+		saveat = input_dir + "/Tc/normal_s_metric/" + metric + ".csv"
+		sim_df = pd.DataFrame(s_metric, index=index, columns=index)
+		makedirs(saveat)
+		sim_df.to_csv(saveat)
+		print (metric)
+
+def smetric_to_snf():
+	SNF(Wall,K,t,ALPHA=1)
 
 
 def main():
@@ -36,7 +68,7 @@ def main():
 if __name__ == "__main__":
 	# main()
 
-	main2()
+	get_s_metric()
 
 
 
