@@ -38,7 +38,14 @@ def get_s_metric():
 		print (metric)
 
 def smetric_to_snf():
-	SNF(Wall,K,t,ALPHA=1)
+	metrics = ["euclidean", "l1", "l2", "cosine", "braycurtis"]
+	Wall = []
+	for metric in metrics:
+		s_metric_file = input_dir + "/Tc/normal_s_metric/" + metric + ".csv" 
+		df = pd.read_csv(s_metric_file, index_col=0)
+		Wall.append(df.values)
+
+	W = SNF(Wall=Wall, K=10, t=10 ,ALPHA=1)
 
 
 def main():

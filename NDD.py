@@ -185,6 +185,10 @@ def normalized(W,ALPHA):
 
 
 def SNF(Wall,K,t,ALPHA=1):
+
+    # # Wall: multiple similarity matrix
+    # # K: K neighbors 
+    
 	C = len(Wall)
 	m,n = Wall[0].shape
 
