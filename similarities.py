@@ -30,11 +30,11 @@ def get_s_metric(fname, tv, pv, metrics):
 
 		s_metric = 1 - d_metric 
 
-		saveat = get_basename(fname).replace(".csv", "_") + metric + ".csv"
-		sim_df = pd.DataFrame(s_metric, index=index, columns=index)
-		makedirs(saveat)
-		sim_df.to_csv(saveat)
-		print (metric)
+		# saveat = get_basename(fname).replace(".csv", "_") + metric + ".csv"
+		# sim_df = pd.DataFrame(s_metric, index=index, columns=index)
+		# makedirs(saveat)
+		# sim_df.to_csv(saveat)
+		# print (metric)
 		sim_matrices.append(s_metric)
 
 
