@@ -6,6 +6,12 @@ from sklearn.model_selection import KFold
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, StandardScaler, scale
 
+
+
+# # for neural net prediction using similarity matrix
+from NDD import FullyConnected
+
+
 #############################################################
 #   Generate n_times trials on learning model from data
 #   Data is splited into trainning set and test set
@@ -33,8 +39,9 @@ def CV_predict(model, X, y, n_folds=3, n_times=3):
 
             X_train, X_test = X[indexes[train]], X[indexes[test]]
             y_train, Y_test = y[indexes[train]], y[indexes[test]]
-
+            print (X_train.shape)
             model.fit(X_train, y_train)
+                # batch_size=2,epochs=20,shuffle=True,validation_split=0)
 
             # y_train_predict = model.predict(X_train)
             y_test_predict = model.predict(X_test)
@@ -52,6 +59,61 @@ def CV_predict(model, X, y, n_folds=3, n_times=3):
     return y_predicts
 
 
+def CV_predict_from_sim_df(model, X, y, n_folds=3, n_times=3):
+
+    if (n_folds <= 0) or (n_folds > len(y)):
+        n_folds = len(y)
+        n_times = 1
+
+    y_predicts = []
+    for i in range(n_times):
+        indexes = np.random.permutation(range(len(y)))
+
+        kf = KFold(n_splits=n_folds)
+
+        y_cv_predict = []
+        cv_test_indexes = []
+        cv_train_indexes = []
+
+        # model = FullyConnected(input_dim=X.shape[1])
+
+        for train, test in kf.split(indexes):
+            # cv_train_indexes += list(indexes[train])
+            cv_test_indexes += list(indexes[test])
+
+
+            # X_train, X_test = X[indexes[train], :][:, indexes[train]], X[indexes[test], :][:, indexes[train]]
+            X_train, X_test = X[indexes[train], :], X[indexes[test], :]
+            y_train, Y_test = y[indexes[train]], y[indexes[test]]
+
+
+            model = FullyConnected(input_dim=X_train.shape[1]).build()
+
+
+            # print (X_train.shape)
+            model.fit(X_train, y_train,
+                batch_size=20, epochs=10000, shuffle=True, validation_split=0,
+                # verbose=0
+                )
+
+            # y_train_predict = model.predict(X_train)
+            y_test_predict = model.predict(X_test)
+            y_cv_predict += list(y_test_predict)
+
+        cv_test_indexes = np.array(cv_test_indexes)
+        rev_indexes = np.argsort(cv_test_indexes)
+
+        y_cv_predict = np.array(y_cv_predict)
+
+        y_predicts += [y_cv_predict[rev_indexes]]
+
+    y_predicts = np.array(y_predicts)
+
+    return y_predicts
+
+
+
+
 def CV_predict_score(model, X, y, n_folds=3, n_times=3, score_type='r2'):
 
     if (n_folds <= 0) or (n_folds > len(y)):
@@ -62,7 +124,10 @@ def CV_predict_score(model, X, y, n_folds=3, n_times=3, score_type='r2'):
     scores = []
     errors = []
     for i in range(n_times):
-        y_predict = CV_predict(model=model, X=X, y=y, n_folds=n_folds, n_times=1)
+        # # normal
+        # y_predict = CV_predict(model=model, X=X, y=y, n_folds=n_folds, n_times=1)
+
+        y_predict = CV_predict_from_sim_df(model=model, X=X, y=y, n_folds=n_folds, n_times=1)
         # n_times = 1 then the result has only 1 y_pred array
         y_predict = y_predict[0]
 
@@ -79,6 +144,7 @@ def CV_predict_score(model, X, y, n_folds=3, n_times=3, score_type='r2'):
 
 
     if score_type == "r2":
+        print ("scores:", scores)
         return np.mean(scores), np.std(scores), np.mean(errors), np.std(errors)
     
     if score_type == "clf-score":
@@ -93,7 +159,7 @@ def CV_predict_score(model, X, y, n_folds=3, n_times=3, score_type='r2'):
                         np.mean(recalls), np.std(recalls), 
                         np.mean(f1_scores), np.std(f1_scores), support]
 
-        return  return_result
+        return return_result
 
 
 def kernel_ridge_parameter_search(X, y_obs, kernel='rbf',

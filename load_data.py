@@ -4,6 +4,8 @@
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from general_lib import *
+from keras.utils import np_utils
+
 
 #--------------------------------------------------
 #NDD Methods

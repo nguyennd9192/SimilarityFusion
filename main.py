@@ -1,65 +1,95 @@
 
 
 import pandas as pd
+import itertools
 from sklearn.model_selection import train_test_split
+
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+from keras.wrappers.scikit_learn import KerasRegressor
+from keras.layers.core import Dropout, Activation, Flatten
+from keras.models import Sequential
+from keras.layers import Dense
 
 
 from general_lib import *
 from MainExample import DeepMDA
 from distance_metric import get_dmetric
-from NDD import SNF
+from NDD import SNF, FullyConnected
+from kr_parameter_search import CV_predict_score
+from similarities import get_s_metric
 
-def get_s_metric():
-	fname = input_dir + "/Tc/TC_data_101_max.csv"
-	df = pd.read_csv(fname, index_col=0)
-	pv = ["Z_R", "Z_T", "C_R"]
-	tv = "Tc"
 
-	X = df[pv].values
-	y = df[tv].values
-	index = df.index
-	num_indices = range(len(y))
-	test_size = 0.3
 
-	X = get_Xnorm(X_matrix=X)
-	# X_train, X_test, y_train, y_test, indices_train, indices_test = train_test_split(X, y, num_indices,
-	# 				test_size=test_size, random_state=0)
-
-	metrics = ["euclidean", "l1", "l2", "cosine", "braycurtis", "canberra", 
-				"correlation", "jaccard", "hamming", "dice"]
-	for metric in metrics:
-		d_metric = get_dmetric(X, metric=metric)
-		s_metric = 1 - d_metric 
-
-		saveat = input_dir + "/Tc/normal_s_metric/" + metric + ".csv"
-		sim_df = pd.DataFrame(s_metric, index=index, columns=index)
-		makedirs(saveat)
-		sim_df.to_csv(saveat)
-		print (metric)
 
 def smetric_to_snf(): 
-	metrics = ["euclidean", "l1", "l2",  "correlation"] #   "cosine", "braycurtis"
-	Wall = []
-	for metric in metrics:
-		s_metric_file = input_dir + "/Tc/normal_s_metric/" + metric + ".csv" 
-		df = pd.read_csv(s_metric_file, index_col=0)
-		Wall.append(df.values)
-
-	W1 = SNF(Wall=Wall[2:], K=20, t=10 ,ALPHA=1)
-	print ("W1:", W1)
-
-
-	W2 = SNF(Wall=Wall[:2], K=20, t=10 ,ALPHA=1)
-
-	print ("W2:", W2)
-
-	print ("diff", sum(np.abs(W1 - W2)))
-	print (W2.shape)
+	# # load from existed similarity matrices
+	# metrics = ["euclidean", "l1", "l2",  "correlation"] #   "cosine", "braycurtis"
+	# Wall = []
+	# for metric in metrics:
+	# 	s_metric_file = input_dir + "/Tc/normal_s_metric/" + metric + ".csv" 
+	# 	df = pd.read_csv(s_metric_file, index_col=0)
+	# 	Wall.append(df.values)
+	fname, pv, tv, org_metrics = experiment_setting()
 
 
+	# list_pair_metrics = itertools.combinations(org_metrics, 3)
+	list_pair_metrics =[["l1", "l2"]]
+
+	for metrics in list_pair_metrics:
+
+		X, y, sim_matrices = get_s_metric(
+			fname=fname, tv=tv, pv=pv, 
+			metrics=metrics)
+
+		W = SNF(Wall=sim_matrices, K=10, t=10, ALPHA=1)
+		print ("W:", W)
 
 
-def main():
+		# W2 = SNF(Wall=Wall[:2], K=20, t=10, ALPHA=1)
+
+		# print ("W2:", W2)
+
+		# print ("diff", sum(np.abs(W1 - W2)))
+
+		W = np.array(sim_matrices[0])
+		# W = W[:, 0:20]
+		print (W.shape, y.shape)
+
+		n_train = int(sim_matrices[0].shape[0])
+
+
+		model = FullyConnected(input_dim=W.shape[1])
+
+		# input_dim=W.shape[1]
+		# estimator = KerasRegressor(build_fn=model.build, 
+		# 		epochs=2000, batch_size=2, verbose=0)
+		# kfold = KFold(n_splits=10)
+		# results = cross_val_score(estimator, W, y, cv=kfold)
+
+		# print("Standardized: %.2f (%.2f) MSE" % (results.mean(), results.std()))
+		# print("results", results)
+
+
+		# # modify since using similarity matrix as input, we cannot have distance to test point
+		r2, r2_std, mae, mae_std = CV_predict_score(model=model, X=W, y=y, 
+				n_folds=10, n_times=3, score_type='r2')
+		print ("r2, r2_std, mae, mae_std:", r2, r2_std, mae, mae_std)
+		result = [dict({"pv":pv, "metrics": metrics, 
+			"r2":r2, "r2_std":r2_std, 
+			"mae":mae, "mae_std":mae_std})]
+		# result_df = pd.DataFrame(result)
+		# saveat = result_dir + "/Tc/{0}.csv".format("|".join(metrics))
+		# makedirs(file=saveat)
+		# print (saveat)
+		# result_df.to_csv(saveat)
+
+
+
+def test_NDD():
 	# # drug_drug_matrix.csv # # to save interaction index
 	index_files = ["drug_pathway_index.txt", "drug_SideEffect_index.txt", "drug_target_index.txt",
 			"drug_transporter_index.txt", "drug_enzyme_index.txt", "drug_list.txt", "drug_offSideEffect_index.txt"]
@@ -84,14 +114,16 @@ def main():
 		DeepMDA(sim_file=sim_file)	
 
 
+
 if __name__ == "__main__":
-	main()
+	# # run test drug-drug interaction
+	# test_NDD()
 
 	# # convert representation to distance matrix
 	# get_s_metric()
 
 	# # fusion multiple similarity matrix by snf
-	# smetric_to_snf()
+	smetric_to_snf()
 
 
 

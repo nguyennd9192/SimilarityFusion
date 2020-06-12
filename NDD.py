@@ -63,6 +63,8 @@ from keras.constraints import maxnorm
 from keras.layers import Input,Dense,Add
 from sklearn.metrics import f1_score
 
+
+
 #--------------------------------------------------
 #NDD Methods
 def prepare_data(seperate=False):
@@ -154,6 +156,32 @@ def NDD(input_dim):
     sgd = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(loss='binary_crossentropy', optimizer=sgd)                  
     return model
+
+class FullyConnected: 
+    def __init__(self, input_dim):
+        self.input_dim = input_dim
+        pass
+
+    def build(self):
+        layer1 = int(self.input_dim/5)
+        layer2 = int(self.input_dim/10)
+
+
+        # model.add(Dense(input_dim, input_dim=input_dim, kernel_initializer='normal'))
+        # model.add(Dense(1, kernel_initializer='normal'))
+        # model.compile(loss='mean_squared_error', optimizer='adam')
+
+        model = Sequential()
+        model.add(Dense(input_dim=self.input_dim, output_dim=layer1,init='normal'))
+        model.add(Dropout(0.5))
+        model.add(Dense(input_dim=layer1, output_dim=layer2,init='normal'))
+        model.add(Dropout(0.5))
+        model.add(Dense(input_dim=layer2, output_dim=1,init='normal'))
+        model.add(Dense(1, kernel_initializer='normal'))
+
+        model.compile(loss='mean_squared_error', optimizer='adam')                  
+        return model
+
 #--------------------------------------------------
     #SNF Methods
     
@@ -182,8 +210,6 @@ def normalized(W,ALPHA):
 
 
 
-
-
 def SNF(Wall,K,t,ALPHA=1):
 
     # # Wall: multiple similarity matrix
@@ -198,8 +224,6 @@ def SNF(Wall,K,t,ALPHA=1):
 		B = B.reshape(len_b,1)
 		Wall[i] = Wall[i]/B
 		Wall[i] = (Wall[i]+np.transpose(Wall[i]))/2
-
-
 
 	newW = []
 	
@@ -263,7 +287,7 @@ def read_Sim_Calc_Entropy(fname,cutoff):
             aIndices_nonZero.append(i)
             arr[i] +=small_number 
             row_sum = arr[i].sum()
-            
+
     for j in range(len(arr[i])):
         v= arr[i][j]
         cell_edited = (v)/row_sum

@@ -72,3 +72,16 @@ def modelEvaluationClf(estimator, X_test, y_test):
 
     prec, recall, f1, support = this_score
     return prec, recall, f1, support
+
+def experiment_setting():
+    fname = input_dir + "/Tc/TC_data_101_max.csv"
+
+    pv = ["Z_R", "Z_T", "Ion_poten_T", 
+            "S_3d", "J_4f",
+            "C_R"]
+    tv = "Tc"
+    org_metrics = [ "l1", "l2", "cosine", "euclidean",
+                "braycurtis", "canberra", 
+                "correlation", "jaccard", "hamming", "dice"
+                ]
+    return fname, pv, tv, org_metrics
