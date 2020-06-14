@@ -43,19 +43,19 @@ def MKL():
 	
 	lam_values = [0, 0.1, 0.2, 1]	
 	C_values   = [0.01, 1, 100]
-	for lam in lam_values:
-		for gamma, C in product(gamma_values, C_values):
-		    svm = SVR(kernel="rbf", C=C, gamma=gamma)
-		    mkl = EasyMKL(lam=lam, learner=svm)
-		    scores = cross_val_score(KL_norm, y, mkl, n_folds=3, scoring='mae')
-		    print (lam, C, scores)
+	# for lam in lam_values:
+	# 	for gamma, C in product(gamma_values, C_values):
+	# 	    svm = SVR(kernel="rbf", C=C, gamma=gamma)
+	# 	    mkl = EasyMKL(lam=lam, learner=svm)
+	# 	    scores = cross_val_score(KL_norm, y, mkl, n_folds=3, scoring='mae')
+	# 	    print (lam, C, scores)
 
-	# for lam, C in product(lam_values, C_values):
-	#     svm = SVC(C=C)
-	#     mkl = EasyMKL(lam=lam, learner=svm)
-	#     # # add into MKL sources
-	#     scores = cross_val_score(KL_norm, y, mkl, n_folds=3, scoring='mae') 
-	#     print (lam, C, scores)
+	for lam, C in product(lam_values, C_values):
+	    svm = SVC(C=C)
+	    mkl = EasyMKL(lam=lam, learner=svm)
+	    # # add into MKL sources
+	    scores = cross_val_score(KL_norm, y, mkl, n_folds=3, scoring='mae') 
+	    print (lam, C, scores)
 
 
 if __name__ == "__main__":
